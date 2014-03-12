@@ -1,0 +1,21 @@
+
+#
+# kaechat.conf.simple: Simple configuration file for KaeChat.
+#
+# Since `kaechat.conf.example' may become bloated as time passes, this file
+# is kept as a reference of the "minimum" configuration needed for the program
+# to be useful at all (*). Please read `kaechat.conf.example' for full
+# documentation about the options.
+#
+# (*) The program is perfectly able to start with no configuration (or no file
+#     at all), but no networks would be available and user would have to
+#     manually add them either to `kaechat.conf' or via the Network List.
+#
+
+[networks]
+username = kaechat
+realname = KaeChat User
+
+[networks/freenode]
+name = Freenode
+address = irc.freenode.net/6667

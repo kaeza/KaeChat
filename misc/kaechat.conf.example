@@ -1,0 +1,159 @@
+
+#
+# kaechat.conf.example: Example configuration file for KaeChat.
+#
+# In this file, all options are commented out, and their respective default
+# values are listed for reference. It's suggested you copy this file to your
+# KaeChat configuration directory (`~/.kaechat' under Unix-like systems, and
+# `<kaechatroot>' under other OSes), and rename it to `pychat.conf'. You may
+# also specify a different configuration directory via the `-C <dir>' command
+# line option. See `README.txt' for details.
+#
+
+# Some options are marked as "Supports replacements". For such options, the
+# client supports some replacements in the string, specified as `{repl}', where
+# `repl' is an identifier. Valid values for `repl' are:
+#   message - Actual message received.
+#   nickname - Your current nickname in the network for which this message was
+#       received.
+#   username - Your username in the network for which this message was
+#       received.
+#   source - The nickname who sent this message.
+#   version - Program name and version number.
+#   time - Current time in `HH:MM:SS' format.
+#   date - Current date in `YYYY-MM-DD' format.
+#   datetime - Current date and time, in `Fri Mar 12 12:34:56' format (the
+#       actual format depends in the current locale.
+# `repl' may also be any name defined in the `replacements' section below.
+
+
+[chat]
+# Conversation options.
+
+# String to append after a nickname tab completion. A space is added
+# automatically after this. This only applies if completing at start of
+# message; it's ignored if the completion is at the middle of the message.
+#nick_complete_suffix = ,
+
+# Whether to send notices to "(notices)" channel.
+#notices_to_chan = false
+
+# Whether to echo highlights to "(highlights)" channel.
+#highlights_to_chan = false
+
+# Shell command to run when someone says your name. Supports replacements.
+#highlight_command =
+
+# Example for Ubuntu:
+#highlight_command = notify-send "KaeChat: Highlight from {source}:" "{message}"
+
+
+[replacements]
+# User-defined replacements (see above).
+#hi = Hello
+
+
+[colors]
+# TODO: This is unimplemented in client.
+# Colors may be specified as either `#RGB', `#RRGGBB', `#RRRGGGBBB', or
+# `<name>', where <name> is one of the colors in the X `rgb.txt' file (for
+# example, `yellow', `blue', etc). If no color specified, the default value
+# is used. If the value is empty or "default", the default color from the
+# toolkit is used.
+
+# Color for misc channel events like joins, leaves, mode/topic changes, etc:
+# <foreground>, <background>
+#channel_event_misc = #000080, default
+
+# Color for user messages, actions, and notices: <foreground>, <background>
+#channel_event_message = #C0C0C0, default
+
+# Color used when someone says your nickname: <foreground>, <background>
+#channel_event_highlight = #0000FF, default
+
+# Colors for channel list: <foreground>, <background>
+# <foreground> is only used when there are no channel event (see above).
+#channel_list = default, default
+
+# Colors for the main textbox: <foreground>, <background>
+#channel_text = default, default
+
+# Colors for the input entry: <foreground>, <background>
+#chat_entry = default, default
+
+
+[ctcp]
+# TODO: CTCP reply configuration is implemented but not used.
+# This section contains replies to CTCP queries. The option name is the query,
+# and the value is the reply. The client supports some replacements in the
+# string, specified as `{repl}', where `repl' is an identifier. See the `chat'
+# section for valid values for `repl'.
+
+# Only the VERSION query is handled by default (you can disable it by setting
+# `version' to an empty value).
+
+# Special reply for a client requesting your client's version.
+#version = {version}
+
+# These are not defaults, but serve as example:
+
+# Client requests current time. This is a common query but may not be set if
+# you don't want others to know your current time.
+#time = {time}
+
+# Silly example.
+#hello = {hi}, {source}!
+
+
+# Networks may be defined using sections named `[networks/<id>]', where <id>
+# is an arbitrary identifier given to the network. When using the `/server'
+# command, you may specify one of those identifiers instead of the network
+# address, and PyChat will use the settings for that network.
+
+[networks]
+# This is a special section containing defaults for all networks. Only the
+# `username', `realname', and `nicks' options are read from here. You may also
+# specify these options on a per-network basis, to override these faules.
+
+# Name of the user (NOT nickname), for authentication. If not set, use your
+# current OS account name, changed to a proper username if necessary.
+#username =
+
+# Your real name, should you want to specify this.
+#realname = KaeChat User
+
+# Comma-separated list of nicknames to use. These are tried in turn until one
+# of them is available. If none of them is available, generate a random nick in
+# the format `kaechat<n>', where <n> is a random number between 0 and 999999.
+# If no nickname is specified, the value of `username' is used.
+#nicks =
+
+
+[networks/freenode]
+# Example of a network.
+# Options here are not defaults, but rather just an example. Connect to this
+# network by selecting "Freenode" from the network list, or typing
+# `/server freenode'.
+
+# Name of this network. Used for labeling purposes in network list and window
+# title.
+name = Freenode
+
+# Address of the server. Format is `<ip>/<port>,<ip>/<port>,...'. Each server
+# is tried in turn, and the first server that responds is used. If <port> is
+# not specified, the default IRC protocol port, 6667, is used.
+# TODO: Only first entry in list is used at the moment.
+address = irc.freenode.net/6667
+
+# Whether to connect to this network automatically when PyChat starts. Defaults
+# to `false'.
+#autoconnect = true
+
+# Channels to join automatically when connecting to this network.
+#channels = #freenode,#linux
+
+# Remember you may also specify options in the global `[networks]' section
+# here.
+#username = blah
+#realname = bleh
+#nicks = foo, bar, baz

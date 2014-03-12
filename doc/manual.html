@@ -1,0 +1,107 @@
+<html>
+<head>
+<title>KaeChat User Manual</title>
+<link rel="stylesheet" type="text/css" href="manual.css"/>
+</head>
+<body>
+<!--=========================================================-->
+<h1><a name="top">KaeChat User Manual</a></h1>
+<!--=========================================================-->
+<!--=========================================================-->
+<h2><a name="toc">Contents</a></h2>
+<!--=========================================================-->
+<ul>
+<li><a href="#intro">Introduction</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#ui">User Interface</a></li>
+<li><a href="#cmdline">Command Line Options</a></li>
+</ul>
+<!--=========================================================-->
+<h2><a name="intro">Introduction</a></h2>
+<!--=========================================================-->
+<p>KaeChat is an IRC client coded from scratch in Python, originally made as a
+learning exercise.
+</p>
+<p>It supports basic IRC client functionality like multiple networks, alerts on
+highlight, etc, in addition to some niceties like highlighting URLs.
+</p>
+<!--=========================================================-->
+<h2><a name="license">License</a></h2>
+<!--=========================================================-->
+<div class="todo"><b>TODO:</b> License.</div>
+<!--=========================================================-->
+<h2><a name="ui">User Interface</a></h2>
+<!--=========================================================-->
+<ul>
+<li><a href="#ui.main">Main Window</a></li>
+<li><a href="#ui.menu">Menu Bar</a></li>
+<li><a href="#ui.netlist">Network List</a></li>
+<li><a href="#ui.prefs">Preferences Window</a></li>
+</ul>
+<!------------------------------------------------------------->
+<h3><a name="ui.main">Main Window</a></h3>
+<!------------------------------------------------------------->
+<p>The main window consists of the <a href="#menu">menu bar</a>, and several
+tabs. The first tab is named <q>(KaeChat)</q>, and is used for global messages.
+The other tabs are <em>Network Tabs</em>; they are like one separate IRC client
+for each network you connect to. You can connect to a network by selecting
+<em>Network &rarr; Network list...</em> from the menu bar.
+</p>
+<!------------------------------------------------------------->
+<h3><a name="ui.menu">Menu Bar</a></h3>
+<!------------------------------------------------------------->
+<h4>Network Menu</h4>
+<ul>
+<li>Network List...
+<p>Shows the <em><a href="#ui.netlist">Network List</a></em> window, from which
+you can connect to a network, or edit your networks.
+</p></li>
+<li>Disconnect
+<p>Disconnects from the current network, and close the respective tab.
+</p></li>
+<li>Quit
+<p>Disconnects from all networks and quits the program.
+</p></li>
+</ul>
+
+<h4>Edit Menu</h4>
+<ul>
+<li>Preferences...
+<p>Shows the <em><a href="#ui.prefs">Preferences</a></em> window, from which
+you can edit program configuration.
+</p></li>
+</ul>
+
+<h4>Help Menu</h4>
+<ul>
+<li>About...
+<p>Shows information about this program.
+</p></li>
+</ul>
+<!------------------------------------------------------------->
+<h3><a name="ui.netlist">Network List</a></h3>
+<!------------------------------------------------------------->
+<p>The Network List window can be used to edit your networks graphically, or to
+connect to one of your configured networks.
+</p>
+<p>To the left is a list of currently configured networks. You can use the
+<em>Add</em> button to add a new network. The <em>Remove</em> button deletes
+the currently selected network; you will be asked for confirmation, but this
+operation cannot be undone. The <em>Edit</em> button opens a window to edit the
+currently selected network. Clicking <em>Close</em> will close the window.
+</p>
+<p>To connect to a network, double click it on the list, or select it from the
+list and click <em>Connect</em>.
+</p>
+<div class="todo"><b>TODO:</b> Network edit window.</div>
+<!------------------------------------------------------------->
+<h3><a name="ui.prefs">Preferences Window</a></h3>
+<!------------------------------------------------------------->
+<div class="todo"><b>TODO:</b> Preferences Window.</div>
+<!--=========================================================-->
+<h2><a name="cmdline">Command Line Options</a></h2>
+<!--=========================================================-->
+<div class="todo"><b>TODO:</b> Command Line Options.</div>
+<!--=========================================================-->
+</body>
+</html>

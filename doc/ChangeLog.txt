@@ -1,0 +1,123 @@
+
+2014-03-11 kaeza:
+    - lib: Reformatting of code to fit into 80-column display.
+    - lib: Change in API: All public attributes of classes are now implemented
+           as "properties" (via `@property' decorator). Only a handful of
+           attributes are now writable.
+    - lib: Documented all public symbols that missed documentation.
+    - lib: Removed ugly `from x import *' statements.
+    - lib: Removed `irc.Client.privmsg_action()' method and added a generic
+           `irc.Client.privmsg_ctcp()' method.
+
+2014-03-10 kaeza:
+    - gui: Changed all "modal" dialogs (Network list, Network editor, About
+       dialog, Preferences dialog) to derive from `tkSimpleDialog.Dialog'.
+    - gui: Implemented better "About" dialog (using a `Tix.NoteBook').
+
+2014-03-09 kaeza:
+    - gui: Finally implemented `/server' and `/quit' commands (`core' plugin).
+    - gui: Client now reports when a requested nickname (via `/nick') is
+       already in use.
+
+2014-03-08 kaeza:
+    - lib: Nicks are now stored as a `(realnick, mode)' tuple. This is because
+       since nicks are stored in lowercase in the mapping, you cannot get
+       the "real" nickname (i.e. had problems if somebody used uppercase
+       chars in the nick).
+    - gui: Implemented simple "About" dialog.
+
+2014-03-07 kaeza:
+    - gui: Connection errors are now reported in "(server)" channel.
+    - gui: Added `on_kaechat_quit' callback to plugin interface.
+
+2014-03-06 kaeza:
+    - gui: Added simple demonstration plugin (`demo' plugin).
+    - gui: Implemented "Add" and "Edit" in Network List dialog.
+    - gui: Changed way `kaechatlib.load_networks()' stores configuration. Now
+       if `username', `realname', or `nicks' options are not specified per
+       network, they are stored as `None'. This prevents the "Edit Network"
+       dialog from copying global options to per-network options.
+    - gui: Dialog windows are now not resizable.
+    - gui: Implemented Network -> Disconnect.
+
+2014-03-05 kaeza:
+    - lib: Implemented `irc.Client.away()'.
+    - gui: Added support to register command aliases.
+    - gui: Added support for AWAY and related commands and replies. Also added
+       `/away' and `/back' commands. Also added `/afk' as an alias for
+       `/away' (`core' plugin).
+    - gui: Changed the way chat commands are registered. Now it's cleaner.
+    - gui: Added `/sh' command, to run shell commands and optionally send the
+       output to a channel/query. Also added `/!' as an alias for `/sh'
+       (`shell' plugin).
+    - gui: Client now replies CTCP PING queries.
+    - gui: Added (probably hacky) `/ping' command (`core' plugin).
+    - gui: Implemented `nick_complete_suffix', `notices_to_chan' and
+       `highlights_to_chan' options. Also implemented CTCP reply
+       configuration (unused currently; need to implement this in
+       `ClientThread').
+    - gui: Text boxes meant only for output are disabled to prevent user input.
+
+2014-03-04 kaeza:
+    - lib: Fixed channel and nick names being stored case-sensitively.
+    - lib: Fixed stupid bug in KICK handling.
+    - lib: Implemented `irc.Client.mode()'.
+    - gui: Made query and "special" channels not show user list or topic box.
+    - gui: Client now switches to network tab on connection.
+    - gui: Client now switches to first channel joined.
+    - gui: Implemented RPL_WHOISUSER handling.
+    - gui: Implemented `/(un)ban', `/(de)op', and `/(de)voice' commands
+       (`chanop' plugin). Also moved `/kick' command to `chanop'.
+    - gui: Added basic support for CTCP queries (currently only VERSION and
+       TIME). Added `/ctcp' command for sending queries, and `/nctcp'
+       for replying (`ctcp' plugin).
+
+2014-03-03 kaeza:
+    - lib: Added some missing replies from RFCs 2810-2813.
+    - lib/gui: Fixed bugs in QUIT handling.
+    - lib: Fixed bugs in JOIN and PART handling (users not being updated).
+    - gui: Added /quote command.
+    - gui: Added preliminary plugin support. Basic commands moved to `core'
+       plugin.
+    - gui: Added /ignore command (`ignore' plugin).
+    - gui: Added /kick and /quote commands (`core' plugin).
+    - gui: Changed from one top-level window per network to one frame. Main
+       window now contains a notebook onto which network frames are added.
+
+2014-03-02 kaeza:
+    - gui: Added simple connection dialog.
+    - gui: Highlights are now echoed to a special channel to track easily.
+
+2014-03-01 kaeza:
+    - gui: Reorganized code a bit.
+    - gui: Added support for multiple networks.
+    - gui: Fixed bugs in chat command handling.
+    - gui: Added config file.
+
+2014-02-28 kaeza:
+    - lib: Added unicode support (default encoding: 'utf-8').
+    - gui: Added support for PRIVMSG ACTION.
+    - gui: Added /me command.
+
+2014-02-27 kaeza:
+    - lib: Copied numeric command names from RFC 1459.
+    - lib: Handlers for numeric codes now are named after command names
+       as above.
+    - lib: Made MODE handling saner.
+    - gui: Added special messages for MODEs 'o', 'v', 'b', and 'q'.
+    - gui: Added colored nick support, and colored channel names on events.
+    - gui: Added /msg command.
+    - gui: Added topic box at top of channels. Pressing return while box is
+       focused sends TOPIC message.
+    - gui: Double clicking user list starts query with selected user.
+
+2014-02-26 kaeza:
+    - lib/gui: Added support for TOPIC, MODE, and KICK.
+    - gui: Added support for multiple channels.
+    - gui: Added "special" channels for debugging purposes.
+    - gui: Implemented channel list and per-channel user list.
+    - gui: Added basic commands (/join, /part, /nick, /topic).
+
+2014-02-25 kaeza:
+    - lib: Wrote basic IRC lib (connect, MOTD, PRIVMSG, JOIN, PART, QUIT, NICK).
+    - gui: Wrote simple interface using Tkinter.

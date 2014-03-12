@@ -1,0 +1,16 @@
+
+TO-DO List:
+-----------
+
+- Test this on a real network (testing at home by myself with Debian ircd).
+- SSL support.
+- Implement send queue to prevent possible "Excess Flood" QUITs.
+- Is this really thread-safe?
+- Better GUI: Menus, options dialog, connection dialog. (working on it)
+- Tkinter keybindings suck. Redefine those.
+- Support missing commands: DCC, ...
+- Better plugin support.
+- Py3K support? (s/\?/!/)
+- Better reporting for errors sent by server.
+- `grep 'TO''DO' -rn .`
+- Code sucks. Maybe rewrite.

@@ -1,0 +1,19 @@
+
+UI Hierarchy:
+
+Tk (top level window)
+    Menu (main menu)
+    MainFrame
+        NoteBook (network selector)
+            Text (echo box)
+            for each network:
+                NetworkFrame <-- contains irc.Client instance
+                    for each channel:
+                        ChannelFrame
+                            Entry (topic box)
+                            Text (main textbox)
+                            Listbox (user list)
+                                Menu (popup menu)
+                    Label (nick label)
+                    Entry (chat box)
+                    Button ("Send")

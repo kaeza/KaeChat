@@ -1,0 +1,42 @@
+
+# Plugin API
+
+Plugins are loaded from `~/.kaechat/plugins' and `<kaechatroot>/plugins'.
+Only Python scripts in source form (*.py) are supported at the moment.
+
+Plugins are loaded as if they were modules. Plugin initialization (if needed)
+should be done in the main body of the module.
+
+In order to receive events from the program, you need to define specially named
+functions in the main body of the module. These are currently supported events:
+
+Note: each of the functions is called through `kaechatlib.plugins.call_plugins'
+in turn in a FIFO manner, and if one returns a value other than None that
+function returns this value. Unless otherwise noted, the return value is
+unused.
+
+## on_networkframe_create(frame)
+
+Called when a new NetworkFrame is created. Plugins can add widgets to it if
+desired, or add a new listener for IRC commands with
+`frame.client.add_listener()'. See `irc.Client' for details.
+
+## on_channelframe_create(frame)
+
+Called when a new ChannelFrame is created. Plugins can add widgets to it if
+desired. Please note that `frame.channel' starts with '(', it's a "special"
+channel (like "(server)"). Such channels don't have user lists. If you need
+to know which network this channel is in, use `frame.master'; it's the parent
+NetworkFrame.
+
+# on_prefswindow_create(window)
+
+Called when the "Preferences" window is created. Can be used by plugins to add
+new configuration pages (as pages of `window.notebook'). See `Tix.NoteBook' for
+details.
+
+# on_prefswindow_commit(window)
+
+Called when the "OK" button is pressed in the "Preferences" window. Should be
+used by plugins to actually commit the configuration changes.
+

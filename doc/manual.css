@@ -1,0 +1,24 @@
+
+body {
+    background-color: #F0F0FF;
+    font-family: sans-serif;
+}
+
+h2, h3 {
+    border: 1px solid blue;
+}
+
+h2, h3, .todo {
+    padding-left: 0.1in;
+    padding-right: 0.1in;
+}
+
+h2 { background-color: #D0D0FF; }
+h3 { background-color: #E0E0FF; }
+
+.todo {
+    display: inline;
+    //display: none;
+    background-color: #FFF0F0;
+    border: 1px solid red;
+}
