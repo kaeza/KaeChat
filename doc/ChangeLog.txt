@@ -1,4 +1,7 @@
 
+2014-03-12 kaeza:
+    - ChangeLog.txt won't be updated anymore. Using `git' now.
+
 2014-03-11 kaeza:
     - lib: Reformatting of code to fit into 80-column display.
     - lib: Change in API: All public attributes of classes are now implemented
