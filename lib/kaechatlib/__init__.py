@@ -26,6 +26,7 @@ import collections
 import random
 
 import Tix
+import tkMessageBox as _tkmb
 
 import irc
 
@@ -378,12 +379,23 @@ def echo(text):
 
 #=============================================================================
 
+def _quit(event=None):
+    if len(mainframe._notebook.pages()) > 1:
+        r = _tkmb.askyesno("Warning", "There are networks still open. \
+Are you sure you want to quit?")
+        if not r:
+            return
+    _kp.call_plugins("on_kaechat_quit")
+    root.destroy()
+    root.quit()
+
 def main(argv=sys.argv):
     """Run KaeChat."""
     global root, mainframe
     import kaechatlib.ui.mainframe
     _kc.reload_config(os.path.join(os.path.dirname(__file__), "..", ".."))
     root = Tix.Tk()
+    root.wm_protocol("WM_DELETE_WINDOW", _quit)
     mainframe = kaechatlib.ui.mainframe.MainFrame(root)
     mainframe.pack(fill=Tix.BOTH, expand=True)
     load_networks()

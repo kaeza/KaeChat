@@ -38,123 +38,83 @@ _event_colors = {
 #=============================================================================
 
 class ChannelFrame(Tix.Frame):
+    """Frame containing the channel-related widgets."""
 
-    colors = (
+    default_colors = (
         "#000000", "#000080", "#008000", "#008080",
         "#800000", "#800080", "#808000", "#808080",
     )
 
-    def __init__(self, frame, client, channel):
-        Tix.Frame.__init__(self, frame.top_frame)
-        self.frame = frame
-        self.client = client
-        self.channel = channel
+    @property
+    def colors(self):
+        """Colors used for colored nicknames."""
+        return self._colors
+
+    @colors.setter
+    def colors(self, colors):
+        self._colors = colors
+
+    @colors.deleter
+    def colors(self, colors):
+        self._colors = None
+
+    @property
+    def frame(self):
+        """The parent `NetworkFrame' of this frame."""
+        return self._frame
+
+    @property
+    def channel(self):
+        """The name of the channel."""
+        return self._channel
+
+    def __init__(self, frame, channel):
+        """Constructs a new `ChannelFrame' instance for the given channel.
+
+        `frame' must be an instance of `MainFrame'.
+        """
+        Tix.Frame.__init__(self, frame._top_frame)
+        self._frame = frame
+        self._channel = channel
+        self._colors = None
         self._init_widgets()
         self._init_bindings()
-        self.event = _k.IDLE_EV
-
-    def _init_widgets(self):
-        f = Tix.Frame(self)
-        f.pack(side=Tix.TOP, fill=Tix.BOTH, expand=True)
-        ff = Tix.Frame(f)
-        ff.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
-        if self.channel[0] in irc.CHANNEL_PREFIXES:
-            self.topicvar = Tix.StringVar()
-            self.topicbox = Tix.Entry(ff, textvariable=self.topicvar)
-            self.topicbox.pack(side=Tix.TOP, fill=Tix.X)
-        else:
-            self.topicbox = None
-        self.textbox = Tix.ScrolledText(ff)
-        self.textbox.pack(side=Tix.BOTTOM, fill=Tix.BOTH, expand=True)
-        self.textbox.text.configure(state=Tix.DISABLED)
-        if self.channel[0] in irc.CHANNEL_PREFIXES:
-            ff = Tix.Frame(f)
-            ff.pack(side=Tix.RIGHT, fill=Tix.BOTH)
-            self.userlistlabel = Tix.Label(ff)
-            self.userlistlabel.pack(side=Tix.TOP, fill=Tix.X)
-            self.userlist_ = Tix.ScrolledListBox(ff)
-            self.userlist_.pack(side=Tix.BOTTOM, fill=Tix.BOTH, expand=True)
-            self.userlist = self.userlist_.listbox
-            self.userlist.configure(selectmode=Tix.BROWSE, bg="white")
-            for i in range(len(self.colors)):
-                c = self.colors[i]
-                self.textbox.text.tag_configure("color_%d" % i, foreground=c)
-            self.textbox.text.tag_configure(_kui.WEB_LINK_TAG,
-              foreground="#0000FF")
-            m = Tix.Menu(self.userlist, tearoff=False)
-            m.add_command(label="Who is this?", command=self._whois_ul)
-            m.add_command(label="Start conversation",
-              command=self._start_query_ul)
-            self.userlist.menu = m
-            _kui.set_colors(self.userlistlabel, "window")
-            _kui.set_colors(self.userlist, "user_list")
-        else:
-            self.userlist = None
-        _kui.set_colors(self, "window")
-        _kui.set_colors(self.textbox, "textbox")
-        _kp.call_plugins("on_channelframe_create", self)
-
-    def _init_bindings(self):
-        if self.userlist is not None:
-            self.userlist.bind("<Double-Button-1>", self._start_query_ul)
-            self.userlist.bind("<Button-3>", self._userlist_rclick)
-        if self.topicbox is not None:
-            self.topicbox.bind("<Return>", self._set_topic)
-        self.textbox.text.tag_bind(_kui.WEB_LINK_TAG, "<Double-Button-1>",
-          self._invoke_url)
-
-    def _userlist_rclick(self, event):
-        self.userlist.menu.post(event.x_root, event.y_root)
-
-    def _invoke_url(self, event):
-        # TODO: This needs better handling.
-        x = event.widget.tag_prevrange(_kui.WEB_LINK_TAG,
-          event.widget.index(Tix.CURRENT))
-        if x:
-            start, end = x
-            url = event.widget.get(start, end)
-            webbrowser.open(url)
+        self._event = _k.IDLE_EV
 
     def reload_config(self):
+        """Reload the configuration for this channel."""
         pass
 
-    def _start_query_ul(self, event=None):
-        sel = self.userlist.get(Tix.ANCHOR)
-        if sel:
-            if (sel[0] == '@') or (sel[0] == '+'):
-                sel = sel[1:]
-            self.frame.select_channel(sel)
-
-    def _whois_ul(self):
-        sel = self.userlist.get(Tix.ANCHOR)
-        self.client.whois(sel)
-
-    def _set_topic(self, event):
-        self.client.topic(self.channel, self.topicvar.get())
-
-    def format_message(self, line):
-        m = _kui.HTTPS_RE.search(line)
-        if m:
-            yield line[:m.start()], _kui.TEXT_TAG
-            yield m.group(), _kui.WEB_LINK_TAG
-            yield line[m.end():], _kui.TEXT_TAG
-        else:
-            yield line, _kui.TEXT_TAG
-
     def echo(self, text, who=None, prefix=None):
-        tb = self.textbox.text
+        """Print a string to the text box.
+
+        `text' is the text to output.
+
+        `who' is the user who sent the message, or None for informational
+        messages.
+
+        `prefix' is the prefix for the text.
+
+        The line echoed is in this format:
+          [HH:MM:SS] PREFIX<WHO> TEXT
+
+        WHO is colored based on it's hash value. The colors are taken from the
+        `colors' member if it's not None, or from `default_colors'.
+        """
+        tb = self._textbox
         tb.configure(state=Tix.NORMAL)
+        colors = self.colors or self.default_colors
         for line in text.splitlines():
             tb.insert(Tix.END, time.strftime("[%H:%M:%S] "))
             if prefix is not None:
                 tb.insert(Tix.END, prefix)
             if who is not None:
                 tb.insert(Tix.END, "<%s>" % who,
-                  "color_%d" % (hash(who) % len(self.colors)))
+                  "color_%d" % (hash(who) % len(colors)))
             else:
                 tb.insert(Tix.END, "***")
             tb.insert(Tix.END, " ")
-            for (part, tag) in self.format_message(line):
+            for (part, tag) in self._format_message(line):
                 if tag is None:
                     tb.insert(Tix.END, part)
                 else:
@@ -166,6 +126,13 @@ class ChannelFrame(Tix.Frame):
         tb.yview_moveto(1 - h)
 
     def clear(self, line=0):
+        """Clear the text box.
+
+        If `line' is zero (the default), the whole text box is cleared. If it's
+        positive, the text from line `line' to the end of the text is cleared.
+        If it's negative, the text from line `line' to the beginning of the
+        text is cleared.
+        """
         tb = self.textbox.text
         tb.configure(state=Tix.NORMAL)
         if line == 0:
@@ -179,13 +146,18 @@ class ChannelFrame(Tix.Frame):
         tb.configure(state=Tix.DISABLED)
 
     def refresh_userlist(self):
-        if self.userlist is not None:
-            self.userlist.delete(0, Tix.END)
-            if self.channel in self.client.channels:
+        """Update the user list.
+
+        Should be called when the users for this channel are received, or when
+        somebody joins/parts.
+        """
+        if self._userlist is not None:
+            self._userlist.delete(0, Tix.END)
+            if self._channel in self._frame.client.channels:
                 ops = [ ]
                 voices = [ ]
                 users = [ ]
-                l = self.client.channels[self.channel].nicknames
+                l = self._frame.client.channels[self._channel].nicknames
                 for name in l:
                     ni = l[name]
                     mode = l[name].mode
@@ -199,9 +171,96 @@ class ChannelFrame(Tix.Frame):
                    + sorted(voices, key=unicode.lower)
                    + sorted(users, key=unicode.lower))
                 for name in l:
-                    self.userlist.insert(Tix.END, name)
-                self.userlistlabel.configure(
+                    self._userlist.insert(Tix.END, name)
+                self._userlistlabel.configure(
                   text="%d Users, %d OPs" % (len(l), len(ops)))
+
+    def _init_widgets(self):
+        f = Tix.Frame(self)
+        f.pack(side=Tix.TOP, fill=Tix.BOTH, expand=True)
+        ff = Tix.Frame(f)
+        ff.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
+        if self.channel[0] in irc.CHANNEL_PREFIXES:
+            self._topicvar = Tix.StringVar()
+            self._topicbox = Tix.Entry(ff, textvariable=self._topicvar)
+            self._topicbox.pack(side=Tix.TOP, fill=Tix.X)
+        else:
+            self._topicbox = None
+        self._textbox_ = Tix.ScrolledText(ff)
+        self._textbox_.pack(side=Tix.BOTTOM, fill=Tix.BOTH, expand=True)
+        self._textbox = self._textbox_.text
+        self._textbox.configure(state=Tix.DISABLED)
+        if self._channel[0] in irc.CHANNEL_PREFIXES:
+            ff = Tix.Frame(f)
+            ff.pack(side=Tix.RIGHT, fill=Tix.BOTH)
+            self._userlistlabel = Tix.Label(ff)
+            self._userlistlabel.pack(side=Tix.TOP, fill=Tix.X)
+            self._userlist_ = Tix.ScrolledListBox(ff)
+            self._userlist_.pack(side=Tix.BOTTOM, fill=Tix.BOTH, expand=True)
+            self._userlist = self._userlist_.listbox
+            self._userlist.configure(selectmode=Tix.BROWSE, bg="white")
+            colors = self._colors or self.default_colors
+            for i in range(len(colors)):
+                c = colors[i]
+                self._textbox.tag_configure("color_%d" % i, foreground=c)
+            self._textbox.tag_configure(_kui.WEB_LINK_TAG,
+              foreground="#0000FF")
+            m = Tix.Menu(self._userlist, tearoff=False)
+            m.add_command(label="Who is this?", command=self._whois_ul)
+            m.add_command(label="Start conversation",
+              command=self._start_query_ul)
+            self._userlist.menu = m
+            _kui.set_colors(self._userlistlabel, "window")
+            _kui.set_colors(self._userlist, "user_list")
+        else:
+            self._userlist = None
+        _kui.set_colors(self, "window")
+        _kui.set_colors(self._textbox, "textbox")
+        _kp.call_plugins("on_channelframe_create", self)
+
+    def _init_bindings(self):
+        if self._userlist is not None:
+            self._userlist.bind("<Double-Button-1>", self._start_query_ul)
+            self._userlist.bind("<Button-3>", self._userlist_rclick)
+        if self._topicbox is not None:
+            self._topicbox.bind("<Return>", self._set_topic)
+        self._textbox.tag_bind(_kui.WEB_LINK_TAG, "<Double-Button-1>",
+          self._invoke_url)
+
+    def _userlist_rclick(self, event):
+        self._userlist.menu.post(event.x_root, event.y_root)
+
+    def _invoke_url(self, event):
+        # TODO: This needs better handling.
+        x = event.widget.tag_prevrange(_kui.WEB_LINK_TAG,
+          event.widget.index(Tix.CURRENT))
+        if x:
+            start, end = x
+            url = event.widget.get(start, end)
+            webbrowser.open(url)
+
+    def _start_query_ul(self, event=None):
+        sel = self._userlist.get(Tix.ANCHOR)
+        if sel:
+            if (sel[0] == '@') or (sel[0] == '+'):
+                sel = sel[1:]
+            self._frame.select_channel(sel)
+
+    def _whois_ul(self):
+        sel = self.userlist.get(Tix.ANCHOR)
+        self._frame.client.whois(sel)
+
+    def _set_topic(self, event):
+        self._frame.client.topic(self.channel, self.topicvar.get())
+
+    def _format_message(self, line):
+        m = _kui.HTTPS_RE.search(line)
+        if m:
+            yield line[:m.start()], _kui.TEXT_TAG
+            yield m.group(), _kui.WEB_LINK_TAG
+            yield line[m.end():], _kui.TEXT_TAG
+        else:
+            yield line, _kui.TEXT_TAG
 
 #=============================================================================
 
@@ -209,61 +268,205 @@ class NetworkFrame(Tix.Frame):
 
     _event_colors = _event_colors
 
-    def __init__(self, master=None, pagename=None, net=None, netid=None):
-        Tix.Frame.__init__(self, master)
-        self.pagename = pagename
-        self.net = net
-        self.netid = netid
-        self.cur_channel = None
-        self.history = [ "" ]
-        self.hist_index = 0
-        self.active = True
+    @property
+    def frame(self):
+        """The parent `MainFrame' of this frame."""
+        return self._frame
+
+    @property
+    def network(self):
+        """Instance of `kaechatlib.NetworkConfig' passed to constructor."""
+        return self._network
+
+    @property
+    def client(self):
+        """Instance of `irc.Client' used for communication."""
+        return self._thread._client
+
+    @property
+    def cur_channel(self):
+        """Currently selected channel."""
+        return self._cur_channel
+
+    @property
+    def active(self):
+        """Boolean indicating whether this frame is still active (i.e.
+        connected)."""
+        return self._active
+
+    def __init__(self, frame=None, pagename=None, network=None, netid=None):
+        Tix.Frame.__init__(self, frame)
+        self._frame = frame
+        self._pagename = pagename
+        self._network = network
+        self._netid = netid
+        self._cur_channel = None
+        self._history = [ "" ]
+        self._hist_index = 0
+        self._active = True
         self._init_widgets()
         self._init_bindings()
-        self.thread = _kct.ClientThread(self)
-        self.client = self.thread.client
-        self.thread.start()
+        self._thread = _kct.ClientThread(self)
+        self._thread.start()
+
+    def reload_config(self):
+        """Reload the configuration for this network.
+
+        This also calls `reload_config()' on each channel frame.
+        """
+        for channel in self.channel_frames:
+            self._channel_frames[channel].reload_config()
+
+    def get_channel_frame(self, channel=None, create=True):
+        """Returns a `ChannelFrame' instance for the specified channel.
+
+        `create' specifies whether to create a new `ChannelFrame' instance if
+        no such instance exists for the given channel.
+
+        Returns the instance for the specified channel if it exists, a new
+        one if it doesn't and `create' is true (default), or None if no
+        instance exists and `create' is false.
+        """
+        if channel is None:
+            if self._cur_channel is None:
+                channel = _k.SERVER_CHANNEL
+            else:
+                channel = self._cur_channel
+        if channel in self._channel_frames:
+            f = self._channel_frames[channel]
+        elif create:
+            f = ChannelFrame(self, channel)
+            self._channel_frames[channel] = f
+            self.refresh_chanlist()
+        else:
+            f = self.get_channel_frame(_k.SERVER_CHANNEL)
+        if self._cur_channel is None:
+            self._cur_channel = channel
+            f.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
+        return f
+
+    def echo(self, text, who=None, channel=None, prefix="", event=None):
+        """Print a string to a channel text box.
+
+        Shortcut for `get_channel_frame(channel).echo(text, ...)'.
+        """
+        self.get_channel_frame(channel).echo(text, who=who, prefix=prefix)
+        if (event is not None) and (channel != self._cur_channel):
+            self.set_channel_event(channel, event)
+
+    def clear(self, channel=None, lines=0):
+        """Clear a channel text box.
+
+        Roughly equivalent to `get_channel_frame(channel).clear(lines)', except
+        that the channel frame is not created if it does not already exist.
+        """
+        f = self.get_channel_frame(channel, create=False)
+        if f:
+            f.clear(lines)
+
+    def refresh_userlist(self, channel):
+        """Update the user list of a channel.
+
+        Roughly equivalent to `get_channel_frame(channel).refresh_userlist()',
+        except that the channel frame is not created if it does not already
+        exist.
+        """
+        f = self.get_channel_frame(channel, create=False)
+        if f:
+            f.refresh_userlist()
+
+    def refresh_chanlist(self):
+        """Update the channel list.
+
+        Should be called whenever the client joins or parts a channel.
+        """
+        self._chanlist.delete(0, Tix.END)
+        for name in sorted(self._channel_frames.keys(), _k.cmp_channels):
+            self._chanlist.insert(Tix.END, name)
+
+    def select_channel(self, channel):
+        """Select a channel and show it's frame."""
+        if not channel in self._channel_frames:
+            self.get_channel_frame(channel)
+        self._cur_channel = channel
+        for name in self._channel_frames:
+            f = self._channel_frames[name]
+            if name == channel:
+                f.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
+            else:
+                f.forget()
+        self.set_channel_event(channel, _k.IDLE_EV, True)
+        for i in range(self._chanlist.size()):
+            name = self._chanlist.get(i)
+            if irc.util.strlower(name) == channel:
+                self._chanlist.selection_anchor(i)
+        self._chatbox.focus()
+
+    def set_channel_event(self, channel, event, override=False):
+        """Sets the current event for the specified channel.
+
+        The event is an integer designating what kind of action happened on
+        that channel. This is only used to change the channel name color in the
+        channel list.
+
+        Events have a priority equal to it's value. Events are only set if the
+        new event is greater than the current one. This is done so e.g.
+        somebody joining a channel (`JOIN_EV') does not "obscure" somebody
+        sending a message (`MESSAGE_EV').
+        """
+        if event < _k.IDLE_EV:
+            event=_k.IDLE_EV
+        elif event > _k.HIGHLIGHT_EV:
+            event = _k.HIGHLIGHT_EV
+        if (not override) and (self._channel_frames[channel]._event >= event):
+            return
+        l = self._chanlist.size()
+        for x in range(l):
+            name = self._chanlist.get(x)
+            if name == channel:
+                self._chanlist.itemconfigure(x, fg=self._event_colors[event])
+                break
+        self._channel_frames[channel]._event = event
 
     def _init_widgets(self):
-        self.top_frame = Tix.Frame(self)
-        self.top_frame.pack(side=Tix.TOP, fill=Tix.BOTH, expand=True)
-        self.chanlist = Tix.Listbox(self.top_frame, selectmode=Tix.BROWSE)
-        self.chanlist.pack(side=Tix.LEFT, fill=Tix.Y)
-        self.channel_frames = { }
+        self._top_frame = Tix.Frame(self)
+        self._top_frame.pack(side=Tix.TOP, fill=Tix.BOTH, expand=True)
+        self._chanlist_ = Tix.ScrolledListBox(self._top_frame)
+        self._chanlist_.pack(side=Tix.LEFT, fill=Tix.Y)
+        self._chanlist = self._chanlist_.listbox
+        self._chanlist.configure(selectmode=Tix.BROWSE)
+        # XXX: ScrolledListBox sucks in this respect.
+        self._chanlist.configure(bg="white")
+        self._channel_frames = { }
         f = Tix.Frame(self)
         f.pack(side=Tix.BOTTOM, fill=Tix.X)
-        self.nicklabel = Tix.Label(f, text="(unnamed)")
-        self.nicklabel.pack(side=Tix.LEFT)
-        self.chatvar = Tix.StringVar()
-        self.chatbox = Tix.Entry(f, textvariable=self.chatvar)
-        self.chatbox.pack(side=Tix.LEFT, fill=Tix.X, expand=True)
-        self.chatbox.focus()
-        self.sendbutton = Tix.Button(f, text="Send", command=self._do_send)
-        self.sendbutton.pack(side=Tix.RIGHT)
+        self._nicklabel = Tix.Label(f, text="(unnamed)")
+        self._nicklabel.pack(side=Tix.LEFT)
+        self._chatvar = Tix.StringVar()
+        self._chatbox = Tix.Entry(f, textvariable=self._chatvar)
+        self._chatbox.pack(side=Tix.LEFT, fill=Tix.X, expand=True)
+        self._chatbox.focus()
+        Tix.Button(f, text="Send", command=self._do_send).pack(side=Tix.RIGHT)
         _kui.set_colors(self, "window")
-        _kui.set_colors(self.nicklabel, "window")
-        _kui.set_colors(self.chatbox, "chatbox")
-        _kui.set_colors(self.chanlist, "channel_list")
+        _kui.set_colors(self._nicklabel, "window")
+        _kui.set_colors(self._chatbox, "chatbox")
+        _kui.set_colors(self._chanlist, "channel_list")
 
     def _init_bindings(self):
         self.bind("<Destroy>", self._quit)
-        self.chatbox.bind("<Return>", self._do_send)
-        self.chatbox.bind("<Up>", self._prev_hist)
-        self.chatbox.bind("<Down>", self._next_hist)
-        self.chatbox.unbind_all("<Tab>")
-        self.chatbox.bind("<Tab>", self._autocomplete)
-        self.chanlist.bind("<<ListboxSelect>>", self._sel_chan)
-
-    def reload_config(self):
-        for channel in self.channel_frames:
-            self.channel_frames[channel].reload_config()
+        self._chatbox.bind("<Return>", self._do_send)
+        self._chatbox.bind("<Up>", self._prev_hist)
+        self._chatbox.bind("<Down>", self._next_hist)
+        self._chatbox.unbind_all("<Tab>")
+        self._chatbox.bind("<Tab>", self._autocomplete)
+        self._chanlist.bind("<<ListboxSelect>>", self._sel_chan)
 
     def _quit(self, event):
-        self.thread.stop()
+        self._thread.stop()
 
     def _autocomplete(self, event):
-        text = self.chatvar.get()
-        end = self.chatbox.index(Tix.INSERT)
+        text = self._chatvar.get()
+        end = self._chatbox.index(Tix.INSERT)
         start = end - 1
         atstart = False
         while (start >= 0) and (text[start] != ' '):
@@ -278,9 +481,9 @@ class NetworkFrame(Tix.Frame):
         if prefix[0] == '/':
             l = sorted([("/" + x) for x in _k.chat_commands.keys()])
         elif prefix[0] in irc.CHANNEL_PREFIXES:
-            l = sorted(self.client.channels.keys(), _k.cmp_channels)
-        elif self.cur_channel and (self.cur_channel[0] != '('):
-            nl = self.client.channels[self.cur_channel].nicknames
+            l = sorted(self._client.channels.keys(), _k.cmp_channels)
+        elif self._cur_channel and (self._cur_channel[0] != '('):
+            nl = self._client.channels[self._cur_channel].nicknames
             l = [ nl[x].nickname for x in nl.keys() ]
             l.sort(key=unicode.lower)
             if atstart:
@@ -313,145 +516,105 @@ class NetworkFrame(Tix.Frame):
         else:
             repl = text[:start] + match + suffix + text[end:]
             rlen = len(match) - len(prefix) + len(suffix)
-        self.chatvar.set(repl)
-        self.chatbox.icursor(end + rlen)
+        self._chatvar.set(repl)
+        self._chatbox.icursor(end + rlen)
 
     def _sel_chan(self, event):
-        sel = self.chanlist.get(Tix.ANCHOR)
+        sel = self._chanlist.get(Tix.ANCHOR)
         self.select_channel(sel)
 
+    # TODO: These two should be replaced by `kaechatlib.ui.History'.
+
     def _prev_hist(self, event):
-        if len(self.history) == 0:
+        if len(self._history) == 0:
             return
-        if self.hist_index > 0:
-            self.hist_index -= 1
-            self.chatvar.set(self.history[self.hist_index])
+        if self._hist_index > 0:
+            self._hist_index -= 1
+            self._chatvar.set(self._history[self._hist_index])
 
     def _next_hist(self, event):
-        if len(self.history) == 0:
+        if len(self._history) == 0:
             return
-        if self.hist_index < len(self.history) - 1:
-            self.hist_index += 1
-            self.chatvar.set(self.history[self.hist_index])
+        if self._hist_index < len(self._history) - 1:
+            self._hist_index += 1
+            self._chatvar.set(self._history[self._hist_index])
 
     def _do_send(self, event=None):
-        text = self.chatvar.get()
+        text = self._chatvar.get()
         if text != "":
-            if len(self.history) == 500:
-                self.history.remove(0)
-            self.history.insert(-1, text)
-            self.hist_index = len(self.history) - 1
+            if len(self._history) == 500:
+                self._history.remove(0)
+            self._history.insert(-1, text)
+            self._hist_index = len(self._history) - 1
             if (text[0] == '/') and (len(text) >= 2) and (text[1] != '/'):
                 try:
                     _k.run_command(self, text[1:])
                 except NotImplementedError as e:
-                    self.echo(e.message, channel=self.cur_channel)
+                    self.echo(e.message, channel=self._cur_channel)
             elif self.cur_channel[0] != '(':
                 if text[0] == '/':
                     text = text[1:]
                 self.client.privmsg(self.cur_channel, text)
-                self.echo(who=self.client.nickname, text=text)
+                self.echo(text, who=self._client.nickname)
             else:
                 self.echo("Cannot send to special channel")
-            self.chatvar.set("")
-
-    def get_channel_frame(self, channel=None, create=True):
-        if channel is None:
-            if self.cur_channel is None:
-                channel = _k.SERVER_CHANNEL
-            else:
-                channel = self.cur_channel
-        if channel in self.channel_frames:
-            f = self.channel_frames[channel]
-        elif create:
-            f = ChannelFrame(self, self.client, channel)
-            self.channel_frames[channel] = f
-            self.refresh_chanlist()
-        else:
-            f = self.get_channel_frame(_k.ERRORS_CHANNEL)
-        if self.cur_channel is None:
-            self.cur_channel = channel
-            f.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
-        return f
-
-    def echo(self, text, who=None, channel=None, prefix="", event=None):
-        self.get_channel_frame(channel).echo(text, who=who, prefix=prefix)
-        if (event is not None) and (channel != self.cur_channel):
-            self.set_channel_event(channel, event)
-
-    def clear(self, channel=None, lines=0):
-        f = self.get_channel_frame(channel, create=False)
-        if f:
-            f.clear(lines)
-
-    def refresh_userlist(self, channel):
-        f = self.get_channel_frame(channel, create=False)
-        if f:
-            f.refresh_userlist()
-
-    def refresh_chanlist(self):
-        self.chanlist.delete(0, Tix.END)
-        for name in sorted(self.channel_frames.keys(), _k.cmp_channels):
-            self.chanlist.insert(Tix.END, name)
-
-    def select_channel(self, channel):
-        if not channel in self.channel_frames:
-            self.get_channel_frame(channel)
-        self.cur_channel = channel
-        for name in self.channel_frames:
-            f = self.channel_frames[name]
-            if name == channel:
-                f.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
-            else:
-                f.forget()
-        self.set_channel_event(channel, _k.IDLE_EV, True)
-        for i in range(self.chanlist.size()):
-            name = self.chanlist.get(i)
-            if irc.util.strlower(name) == channel:
-                self.chanlist.selection_anchor(i)
-        self.chatbox.focus()
-
-    def set_channel_event(self, channel, event, override=False):
-        if event < _k.IDLE_EV:
-            event=_k.IDLE_EV
-        elif event > _k.HIGHLIGHT_EV:
-            event = _k.HIGHLIGHT_EV
-        if (not override) and (self.channel_frames[channel].event >= event):
-            return
-        l = self.chanlist.size()
-        for x in range(l):
-            name = self.chanlist.get(x)
-            if name == channel:
-                self.chanlist.itemconfigure(x, fg=self._event_colors[event])
-                break
-        self.channel_frames[channel].event = event
+            self._chatvar.set("")
 
 #=============================================================================
 
 class MainFrame(Tix.Frame):
+    """Main application frame.
+
+    This frame contains the network selector (a `Tix.NoteBook'), and
+    initializes the menu of it's toplevel.
+    """
 
     def __init__(self, master=None, *args, **kw):
+        """Construct a new `MainFrame' instance.
+
+        All arguments are passed as-is to the `Tix.Frame' constructor.
+        """
         Tix.Frame.__init__(self, master, *args, **kw)
         self._init_widgets()
         self._init_bindings()
         self._root().title("KaeChat")
-        self.open_nets = { }
         self._page_serial = 0
+
+    def connect(self, netid):
+        """Connect to a given network ID."""
+        if netid in _k.networks:
+            pagename = "network%d" % self._page_serial
+            self._page_serial += 1
+            net = _k.networks[netid]
+            page = self._notebook.add(pagename, label=net.name)
+            page.netframe = NetworkFrame(page, pagename=pagename, network=net,
+              netid=netid)
+            page.netframe.pack(fill=Tix.BOTH, expand=True)
+
+    def reload_config(self):
+        """Calls `reload_config()' on each open `NetworkFrame'."""
+        for page in self._notebook.pages():
+            page.netframe.reload_config()
+
+    def echo(self, text):
+        """Echo something to the global "echo box"."""
+        tb = self._echobox
+        tb.configure(state=Tix.NORMAL)
+        tb.insert(Tix.END, text + "\n")
+        tb.configure(state=Tix.DISABLED)
 
     def _init_widgets(self):
         self._init_menu()
-        self.notebook = Tix.NoteBook(self)
-        self.notebook.pack(fill=Tix.BOTH, expand=True)
-        f = self.notebook.add("@messages", label="(KaeChat)")
-        self.echobox = Tix.ScrolledText(f)
-        self.echobox.pack(fill=Tix.BOTH, expand=True)
-        self.echobox.text.configure(state=Tix.DISABLED)
+        self._notebook = Tix.NoteBook(self)
+        self._notebook.pack(fill=Tix.BOTH, expand=True)
+        f = self._notebook.add("@messages", label="(KaeChat)")
+        self._echobox_ = Tix.ScrolledText(f)
+        self._echobox_.pack(fill=Tix.BOTH, expand=True)
+        self._echobox = self._echobox_.text
+        self._echobox.configure(state=Tix.DISABLED)
 
     def _init_bindings(self):
-        self.bind("<Destroy>", self._quit)
-
-    def _quit(self, event):
-        _kp.call_plugins("on_kaechat_quit")
+        pass
 
     def _init_menu(self):
         win = self._root()
@@ -460,7 +623,7 @@ class MainFrame(Tix.Frame):
         netmenu.add_command(label="Connect...", command=self._net_connect)
         netmenu.add_command(label="Disconnect", command=self._net_disconnect)
         netmenu.add_separator()
-        netmenu.add_command(label="Quit", command=self._net_quit)
+        netmenu.add_command(label="Quit", command=self._root().destroy)
         m.add_cascade(label="Network", menu=netmenu)
         editmenu = Tix.Menu(m, tearoff=False)
         editmenu.add_command(label="Preferences...", command=self._edit_prefs)
@@ -473,47 +636,16 @@ class MainFrame(Tix.Frame):
         m.add_cascade(label="Help", menu=helpmenu)
         win.configure(menu=m)
 
-    def echo(self, text):
-        tb = self.echobox.text
-        tb.configure(state=Tix.NORMAL)
-        tb.insert(Tix.END, text + "\n")
-        tb.configure(state=Tix.DISABLED)
-
-    def connect(self, netid):
-        if netid in _k.networks:
-            pagename = "network%d" % self._page_serial
-            self._page_serial += 1
-            net = _k.networks[netid]
-            page = self.notebook.add(pagename, label=net.name)
-            page.netframe = NetworkFrame(page, pagename=pagename, net=net,
-              netid=netid)
-            page.netframe.pack(fill=Tix.BOTH, expand=True)
-            self.open_nets[netid] = page.netframe
-
-    def reload_config(self):
-        for netid in self.open_nets:
-            self.open_nets[netid].reload_config()
-
     def _net_connect(self):
         nl = _kuinl.NetworkListWindow(self)
 
     def _net_disconnect(self, event=None):
-        pagename = self.notebook.raised()
+        pagename = self._notebook.raised()
         if pagename[0] != '@':
-            f = self.notebook.page(pagename).netframe
+            f = self._notebook.page(pagename).netframe
             if f.active:
-                f.client.disconnect()
-                f.client = None
-            self.notebook.delete(pagename)
-            del self.open_nets[f.netid]
-
-    def _net_quit(self):
-        if len(self.open_nets) > 0:
-            r = _tkmb.showquestion("Warning", "There are networks still open. \
-Are you sure you want to quit?")
-            if not r:
-                return
-        self._quit()
+                f._thread._client.disconnect()
+            self._notebook.delete(pagename)
 
     def _edit_prefs(self):
         _kuipf.PreferencesWindow(self._root())
@@ -524,6 +656,6 @@ Are you sure you want to quit?")
             _k.echo(c[1] + "\n\n" + c[2])
 
     def _help_about(self):
-        d = _kuiab.AboutDialog(self._root())
+        _kuiab.AboutDialog(self._root())
 
 #=============================================================================
