@@ -27,6 +27,14 @@
 # `repl' may also be any name defined in the `replacements' section below.
 
 
+[kaechat]
+# General program options.
+
+# If true the client asks for confirmation before exiting if there are network
+# tabs still open.
+#confirm_quit = true
+
+
 [chat]
 # Conversation options.
 

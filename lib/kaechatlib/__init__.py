@@ -380,7 +380,7 @@ def echo(text):
 #=============================================================================
 
 def _quit(event=None):
-    if len(mainframe._notebook.pages()) > 1:
+    if _kc.confirm_quit and len(mainframe._notebook.pages()) > 1:
         r = _tkmb.askyesno("Warning", "There are networks still open. \
 Are you sure you want to quit?")
         if not r:

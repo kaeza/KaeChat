@@ -12,7 +12,7 @@ DEFAULT_FILE = os.path.join(os.getenv("HOME") or ".", ".kaechat", FILENAME)
 def update_config():
     global nick_complete_suffix, notices_to_chan, highlights_to_chan, \
            default_username, default_realname, default_nicks, \
-           default_quit_message, default_part_message
+           default_quit_message, default_part_message, confirm_quit
     nick_complete_suffix = get("chat", "nick_complete_suffix", ", ")
     notices_to_chan = get_bool("chat", "notices_to_chan", False)
     highlights_to_chan = get_bool("chat", "highlights_to_chan", True)
@@ -21,6 +21,7 @@ def update_config():
     default_nicks = get_list("networks", "nicks")
     default_quit_message = get("chat", "default_quit_message")
     default_part_message = get("chat", "default_part_message")
+    confirm_quit = get_bool("general", "confirm_quit")
 
 def reload_config(bd):
     global basedir, config
