@@ -1,4 +1,5 @@
 
+import os
 import time
 import webbrowser
 
@@ -8,6 +9,7 @@ import tkMessageBox as _tkmb
 import irc
 
 import kaechatlib as _k
+import kaechatlib.config as _kc
 import kaechatlib.clientthread as _kct
 import kaechatlib.plugins as _kp
 import kaechatlib.locals as _kl
@@ -274,15 +276,15 @@ class NetworkFrame(Tix.Frame):
             return
         suffix = " "
         if prefix[0] == '/':
-            l = sorted([("/" + x) for x in kaechatlib.chat_commands.keys()])
+            l = sorted([("/" + x) for x in _k.chat_commands.keys()])
         elif prefix[0] in irc.CHANNEL_PREFIXES:
-            l = sorted(self.client.channels.keys(), kaechatlib.cmp_channels)
+            l = sorted(self.client.channels.keys(), _k.cmp_channels)
         elif self.cur_channel and (self.cur_channel[0] != '('):
             nl = self.client.channels[self.cur_channel].nicknames
             l = [ nl[x].nickname for x in nl.keys() ]
             l.sort(key=unicode.lower)
             if atstart:
-                suffix = kaechatlib.config.nick_complete_suffix
+                suffix = _kc.nick_complete_suffix
                 if suffix is None:
                     suffix = ""
                 suffix += " "
