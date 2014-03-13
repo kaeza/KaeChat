@@ -335,10 +335,14 @@ class Client(object):
         try:
             text = self.file.readline()
         except socket.error:
-            text = None
-        if text:
-            text = unicode(text.rstrip("\n\r"), self.encoding)
-            self.on_received(text)
+            pass
+        else:
+            if text:
+                try:
+                    text = unicode(text, self.encoding).rstrip("\n\r")
+                except ValueError:
+                    text = unicode(text, 'cp1252').rstrip("\n\r")
+                self.on_received(text)
 
     def send(self, text):
         """Sends raw text to the underlying socket, and flushes it."""
