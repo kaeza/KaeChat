@@ -256,7 +256,9 @@ class Client(object):
         self._socket = None
         self._file = None
         self._connected = False
+        self._quitting = False
         self._authed = False
+        self._send_queue = [ ]
 
     def add_listener(self, listener):
         """Adds an object to the list of listeners for the instance.
@@ -289,6 +291,7 @@ class Client(object):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(("", 0))
         self.socket.connect(self.address)
+        self._connected = True
         self._file = self.socket.makefile()
         self.send("CAP REQ multi-prefix")
         self.send("CAP END")
@@ -297,11 +300,11 @@ class Client(object):
         self.socket.setblocking(0)
         st = time.clock()
         while not self.authed:
+            time.sleep(0.1)
             self.poll()
             t = time.clock() - st
             if t >= timeout:
                 raise ConnectionError("Timed out")
-        self._connected = True
         for (chan, v) in self.channels:
             self.join(chan)
 
@@ -313,14 +316,9 @@ class Client(object):
 
         Operations on a disconnected client may raise exceptions.
         """
-        if self.connected:
-            self.send("QUIT" if reason is None else ("QUIT :%s" % reason))
-        if self.socket:
-            self.socket.close()
-        self._file = None
-        self._socket = None
+        self._send("QUIT" if reason is None else ("QUIT :%s" % reason))
         self._connected = False
-        self._authed = False
+        self._quitting = True
 
     def quit(self, reason=None):
         """Alias for `disconnect()'."""
@@ -332,25 +330,38 @@ class Client(object):
         This method looks if there's data pending to be read from the socket,
         and if so, calls `on_received()' with the text received.
         """
-        try:
-            text = self.file.readline()
-        except socket.error:
-            pass
-        else:
-            if text:
+        while self.connected:
+            try:
+                text = self.file.readline()
+            except socket.error:
+                break
+            else:
                 try:
                     text = unicode(text, self.encoding).rstrip("\n\r")
                 except ValueError:
                     text = unicode(text, 'cp1252').rstrip("\n\r")
                 self.on_received(text)
+        while self._send_queue:
+            text = self._send_queue[0]
+            del self._send_queue[0]
+            self._send(text)
+        if self._quitting:
+            if self.socket:
+                self.socket.close()
+            self._file = None
+            self._socket = None
+            self._authed = False
+            self._send_queue = False
 
-    def send(self, text):
-        """Sends raw text to the underlying socket, and flushes it."""
-        # TODO: Implement send queue.
-        text = text.encode(self.encoding)
+    def _send(self, text):
         self.try_call("on_raw_send", None, [ text ])
         self.file.write(text + "\r\n")
         self.file.flush()
+
+    def send(self, text):
+        """Sends raw text to the underlying socket, and flushes it."""
+        text = text.encode(self.encoding)
+        self._send_queue.append(text)
 
     def nick(self, nickname):
         """Issue a `NICK' command.
