@@ -167,8 +167,6 @@ class Client(object):
 
         This property is None if `authed' is false.
         """
-        if not self.authed:
-            raise ValueError("`nickname' property not available before `RPL_WELCOME'")
         return self._nickname
 
     @property
