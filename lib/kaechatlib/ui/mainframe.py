@@ -6,7 +6,8 @@ import webbrowser
 import Tix
 import tkMessageBox as _tkmb
 
-import irc
+import kaeirc
+import kaeirc.util
 
 import kaechatlib as _k
 import kaechatlib.config as _kc
@@ -180,7 +181,7 @@ class ChannelFrame(Tix.Frame):
         f.pack(side=Tix.TOP, fill=Tix.BOTH, expand=True)
         ff = Tix.Frame(f)
         ff.pack(side=Tix.LEFT, fill=Tix.BOTH, expand=True)
-        if self.channel[0] in irc.CHANNEL_PREFIXES:
+        if self._channel[0] in kaeirc.CHANNEL_PREFIXES:
             self._topicvar = Tix.StringVar()
             self._topicbox = Tix.Entry(ff, textvariable=self._topicvar)
             self._topicbox.pack(side=Tix.TOP, fill=Tix.X)
@@ -190,7 +191,7 @@ class ChannelFrame(Tix.Frame):
         self._textbox_.pack(side=Tix.BOTTOM, fill=Tix.BOTH, expand=True)
         self._textbox = self._textbox_.text
         self._textbox.configure(state=Tix.DISABLED)
-        if self._channel[0] in irc.CHANNEL_PREFIXES:
+        if self._channel[0] in kaeirc.CHANNEL_PREFIXES:
             ff = Tix.Frame(f)
             ff.pack(side=Tix.RIGHT, fill=Tix.BOTH)
             self._userlistlabel = Tix.Label(ff)
@@ -280,7 +281,7 @@ class NetworkFrame(Tix.Frame):
 
     @property
     def client(self):
-        """Instance of `irc.Client' used for communication."""
+        """Instance of `kaeirc.Client' used for communication."""
         return self._thread._client
 
     @property
@@ -398,7 +399,7 @@ class NetworkFrame(Tix.Frame):
         self.set_channel_event(channel, _k.IDLE_EV, True)
         for i in range(self._chanlist.size()):
             name = self._chanlist.get(i)
-            if irc.util.strlower(name) == channel:
+            if kaeirc.util.strlower(name) == channel:
                 self._chanlist.selection_anchor(i)
         self._chatbox.focus()
 
@@ -480,7 +481,7 @@ class NetworkFrame(Tix.Frame):
         suffix = " "
         if prefix[0] == '/':
             l = sorted([("/" + x) for x in _k.chat_commands.keys()])
-        elif prefix[0] in irc.CHANNEL_PREFIXES:
+        elif prefix[0] in kaeirc.CHANNEL_PREFIXES:
             l = sorted(self._client.channels.keys(), _k.cmp_channels)
         elif self._cur_channel and (self._cur_channel[0] != '('):
             nl = self._client.channels[self._cur_channel].nicknames

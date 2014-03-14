@@ -28,7 +28,7 @@ import random
 import Tix
 import tkMessageBox as _tkmb
 
-import irc
+import kaeirc
 
 import kaechatlib.config as _kc
 import kaechatlib.plugins as _kp
@@ -349,10 +349,11 @@ def cmp_channels(c1, c2):
     Used as `cmp' parameter to `sorted()' to sort the channel list.
 
     The channels are ordered by their prefix character (in the order specified
-    by `irc.CHANNEL_PREFIXES'). "Special channels" (those starting with an open
-    parentheses) are put after normal channels, followed by query channels.
+    by `kaeirc.CHANNEL_PREFIXES'). "Special channels" (those starting with an
+    open parentheses) are put after normal channels, followed by query
+    channels.
     """
-    pfx = irc.CHANNEL_PREFIXES + "("
+    pfx = kaeirc.CHANNEL_PREFIXES + "("
     i1 = pfx.find(c1[0])
     if i1 == -1: i1 = sys.maxint
     i2 = pfx.find(c2[0])

@@ -12,7 +12,7 @@ import socket
 import kaechatlib as _kl
 import kaechatlib.config as _kc
 
-import irc
+import kaeirc
 
 #=============================================================================
 
@@ -42,7 +42,7 @@ class ClientThread(threading.Thread):
 
     @property
     def client(self):
-        """The `irc.Client' instance."""
+        """The `kaeirc.Client' instance."""
         return self._client
 
     def __init__(self, frame):
@@ -59,7 +59,7 @@ class ClientThread(threading.Thread):
         nick = self._get_next_nick()
         username = (net.username or _kc.default_username)
         realname = (net.realname or _kc.default_realname)
-        self._client = irc.Client(username, frame.network.address,
+        self._client = kaeirc.Client(username, frame.network.address,
           nickname=nick, realname=realname)
         self._client.add_listener(self)
 

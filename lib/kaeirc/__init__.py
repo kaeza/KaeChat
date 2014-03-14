@@ -24,8 +24,8 @@ import re
 import time
 import random
 
-import irc.aliases
-import irc.util
+import kaeirc.aliases
+import kaeirc.util
 
 #=============================================================================
 
@@ -79,9 +79,9 @@ def nick_equals(n1, n2):
     """Compare two nicknames for equality.
 
     Comparison is done as defined by the IRC protocol. See
-    `irc.util.strlower()' for details.
+    `kaeirc.util.strlower()' for details.
     """
-    return (irc.util.strlower(n1) == irc.util.strlower(n2))
+    return (kaeirc.util.strlower(n1) == kaeirc.util.strlower(n2))
 
 #=============================================================================
 
@@ -139,7 +139,7 @@ class Channel(object):
         user list.
         """
         self._name = name
-        self._nicknames = irc.util.casedict()
+        self._nicknames = kaeirc.util.casedict()
 
 #=============================================================================
 
@@ -228,7 +228,8 @@ class Client(object):
 
     def __init__(self, username, address, nickname=None, realname=None,
       encoding="utf-8"):
-        """Create a new irc.Client using the specified username and address.
+        """Create a new `kaeirc.Client' using the specified username and
+        address.
 
         The `username' and `realname' parameters are passed in the initial
         `USER' command. If not specified, or None, `realname' defaults to
@@ -249,7 +250,7 @@ class Client(object):
         self._realname = realname or username
         self._encoding = encoding
         self._address = address
-        self._channels = irc.util.casedict()
+        self._channels = kaeirc.util.casedict()
         self._listeners = [ ]
         self._socket = None
         self._file = None
@@ -535,8 +536,8 @@ class Client(object):
 
         The second word in the line (first if there's no prefix), the lowercase
         version is used as command. If there's an alias for the command in
-        `irc.aliases.command_aliases', the command is replaced by this alias.
-        In any case, the command, with the prefix "on_" added, is the
+        `kaeirc.aliases.command_aliases', the command is replaced by this
+        alias. In any case, the command, with the prefix "on_" added, is the
         "handler".
 
         This method calls the `try_call()' method, passing the "handler" as the
@@ -563,8 +564,8 @@ class Client(object):
         if last is not None:
             newargs.append(" ".join(last))
         args = newargs
-        if cmd in irc.aliases.command_aliases:
-            cmd = irc.aliases.command_aliases[cmd]
+        if cmd in kaeirc.aliases.command_aliases:
+            cmd = kaeirc.aliases.command_aliases[cmd]
         cmd = cmd.lower()
         r = self.try_call("before_" + cmd, who, args)
         if r is not None:
