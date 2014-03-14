@@ -101,7 +101,7 @@ class ClientThread(threading.Thread):
         if who[0] == self.client.nickname:
             text = "Now talking on %s" % channel
         else:
-            text = "%s joined %s" % (who[0], channel)
+            text = "%s (%s@%s) joined %s" % (who[0], who[1], who[2], channel)
         self._frame.echo(text, channel=channel, event=_kl.JOIN_EV)
         self._frame.refresh_userlist(channel)
         if  (not self._frame.cur_channel) \
@@ -341,8 +341,5 @@ class ClientThread(threading.Thread):
     _on_rpl_motdstart = _server_message
     _on_rpl_motd = _server_message
     _on_rpl_endofmotd = _server_message
-
-    #def _on_raw_recv(self, who, text):
-    #    print "RECV: %s" % text.rstrip().encode('utf-8')
 
 #=============================================================================

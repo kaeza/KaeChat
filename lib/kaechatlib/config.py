@@ -30,15 +30,18 @@ def reload_config(bd):
     config.read(find_configs(FILENAME))
     update_config()
 
+_config_dirs = None
+
 def find_configs(*names):
     l = [ ]
     HOME = os.getenv("HOME") or "."
-    _config_dirs = tuple(os.path.abspath(x) for x in (
-        basedir,
-        os.path.join(basedir, ".."),
-        os.path.join(HOME, ".kaechat"),
-    ))
-    print "_config_dirs: %r" % (_config_dirs,)
+    global _config_dirs
+    if not _config_dirs:
+        _config_dirs = tuple(os.path.abspath(x) for x in (
+            basedir,
+            os.path.join(basedir, ".."),
+            os.path.join(HOME, ".kaechat"),
+        ))
     for d in _config_dirs:
         p = os.path.join(d, *names)
         if os.path.exists(p):
