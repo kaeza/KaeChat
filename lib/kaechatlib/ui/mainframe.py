@@ -309,6 +309,7 @@ class NetworkFrame(Tix.Frame):
         self._init_bindings()
         self._thread = _kct.ClientThread(self)
         self._thread.start()
+        _kp.call_plugins("on_networkframe_create", self)
 
     def reload_config(self):
         """Reload the configuration for this network.
