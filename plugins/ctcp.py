@@ -1,6 +1,6 @@
 
 import kaechatlib
-import irc
+import kaeirc
 
 @kaechatlib.chat_command
 def _ctcp(frame, cmd, args, args_eol):
@@ -22,7 +22,7 @@ def _ctcp(frame, cmd, args, args_eol):
     if len(args) < 2:
         kaechatlib.usage(frame, cmd, "Missing parameter.")
         return
-    elif args[0][0] in irc.CHANNEL_PREFIXES:
+    elif args[0][0] in kaeirc.CHANNEL_PREFIXES:
         kaechatlib.usage(frame, cmd, "/CTCP may not be used on channels.")
         return
     frame.client.privmsg(args[0], "\1%s\1" % args_eol[1])
@@ -36,7 +36,7 @@ def _nctcp(frame, cmd, args, args_eol):
     if len(args) < 2:
         kaechatlib.usage(frame, cmd, "Missing parameter.")
         return
-    elif args[0][0] in irc.CHANNEL_PREFIXES:
+    elif args[0][0] in kaeirc.CHANNEL_PREFIXES:
         kaechatlib.usage(frame, cmd, "/NCTCP may not be used on channels.")
         return
     frame.client.notice(args[0], "\1%s\1" % args_eol[1])

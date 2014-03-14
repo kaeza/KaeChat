@@ -2,7 +2,7 @@
 import time
 
 import kaechatlib
-import irc
+import kaeirc
 
 @kaechatlib.chat_command
 def _say(frame, cmd, args, args_eol):
@@ -139,7 +139,7 @@ def _ping(frame, cmd, args, args_eol):
     if len(args) < 1:
         kaechatlib.usage(frame, cmd, "Missing parameter.")
         return
-    elif args[0][0] in irc.CHANNEL_PREFIXES:
+    elif args[0][0] in kaeirc.CHANNEL_PREFIXES:
         kaechatlib.usage(frame, cmd, "/ping cannot be used on channels.")
         return
     global ping_handler

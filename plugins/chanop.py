@@ -1,6 +1,6 @@
 
 import kaechatlib
-import irc
+import kaeirc
 
 @kaechatlib.chat_command
 def _kick(frame, cmd, args, args_eol):
@@ -11,7 +11,7 @@ def _kick(frame, cmd, args, args_eol):
     if len(args) < 1:
         usage(frame, cmd, "Missing parameter.")
         return
-    if args[0][0] in irc.CHANNEL_PREFIXES:
+    if args[0][0] in kaeirc.CHANNEL_PREFIXES:
         channel = args[0]
         args = args[1:]
         if len(args) < 1:
@@ -29,7 +29,7 @@ def _set_user_mode(frame, cmd, args, args_eol, mode):
     if len(args) < 1:
         kaechatlib.usage(frame, cmd, "Missing parameter.")
         return
-    if args[0][0] in irc.CHANNEL_PREFIXES:
+    if args[0][0] in kaeirc.CHANNEL_PREFIXES:
         channel = args[0]
         nicks = args[1:]
         if len(nicks) < 1:
@@ -77,7 +77,7 @@ def _set_ban(frame, cmd, args, args_eol, do_set):
     if len(args) < 1:
         kaechatlib.usage(frame, cmd, "Missing parameter.")
         return False
-    if args[0][0] in irc.CHANNEL_PREFIXES:
+    if args[0][0] in kaeirc.CHANNEL_PREFIXES:
         if len(args) < 2:
             kaechatlib.usage(frame, cmd, "Missing parameter.")
             return False

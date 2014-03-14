@@ -33,7 +33,13 @@ def reload_config(bd):
 def find_configs(*names):
     l = [ ]
     HOME = os.getenv("HOME") or "."
-    for d in (basedir, os.path.join(HOME, ".kaechat")):
+    _config_dirs = tuple(os.path.abspath(x) for x in (
+        basedir,
+        os.path.join(basedir, ".."),
+        os.path.join(HOME, ".kaechat"),
+    ))
+    print "_config_dirs: %r" % (_config_dirs,)
+    for d in _config_dirs:
         p = os.path.join(d, *names)
         if os.path.exists(p):
             l.append(p)

@@ -342,7 +342,7 @@ class ClientThread(threading.Thread):
     _on_rpl_motd = _server_message
     _on_rpl_endofmotd = _server_message
 
-    def _on_raw_recv(self, who, text):
-        print "RECV: %s" % text.rstrip().encode('utf-8')
+    #def _on_raw_recv(self, who, text):
+    #    print "RECV: %s" % text.rstrip().encode('utf-8')
 
 #=============================================================================

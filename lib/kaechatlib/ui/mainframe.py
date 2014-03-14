@@ -482,9 +482,9 @@ class NetworkFrame(Tix.Frame):
         if prefix[0] == '/':
             l = sorted([("/" + x) for x in _k.chat_commands.keys()])
         elif prefix[0] in kaeirc.CHANNEL_PREFIXES:
-            l = sorted(self._client.channels.keys(), _k.cmp_channels)
+            l = sorted(self.client.channels.keys(), _k.cmp_channels)
         elif self._cur_channel and (self._cur_channel[0] != '('):
-            nl = self._client.channels[self._cur_channel].nicknames
+            nl = self.client.channels[self._cur_channel].nicknames
             l = [ nl[x].nickname for x in nl.keys() ]
             l.sort(key=unicode.lower)
             if atstart:
@@ -555,8 +555,8 @@ class NetworkFrame(Tix.Frame):
             elif self.cur_channel[0] != '(':
                 if text[0] == '/':
                     text = text[1:]
-                self.client.privmsg(self.cur_channel, text)
-                self.echo(text, who=self._client.nickname)
+                self.client.privmsg(self._cur_channel, text)
+                self.echo(text, who=self._frame._client.nickname)
             else:
                 self.echo("Cannot send to special channel")
             self._chatvar.set("")
