@@ -549,7 +549,8 @@ class Client(object):
         who = (None, None, None, None)
         if (len(args[0]) > 0) and (args[0][0] == ':'):
             who = parse_prefix(args[0])
-        cmd, args = args[1], args[2:]
+            args = args[1:]
+        cmd, args = args[0], args[1:]
         newargs = [ ]
         last = None
         for a in args:
