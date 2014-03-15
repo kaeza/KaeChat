@@ -316,7 +316,7 @@ class NetworkFrame(Tix.Frame):
 
         This also calls `reload_config()' on each channel frame.
         """
-        for channel in self.channel_frames:
+        for channel in self._channel_frames:
             self._channel_frames[channel].reload_config()
 
     def get_channel_frame(self, channel=None, create=True):
@@ -589,14 +589,15 @@ class MainFrame(Tix.Frame):
             self._page_serial += 1
             net = _k.networks[netid]
             page = self._notebook.add(pagename, label=net.name)
-            page.netframe = NetworkFrame(page, pagename=pagename, network=net,
+            page._netframe = NetworkFrame(page, pagename=pagename, network=net,
               netid=netid)
-            page.netframe.pack(fill=Tix.BOTH, expand=True)
+            page._netframe.pack(fill=Tix.BOTH, expand=True)
 
     def reload_config(self):
         """Calls `reload_config()' on each open `NetworkFrame'."""
         for page in self._notebook.pages():
-            page.netframe.reload_config()
+            if hasattr(page, "_netframe"):
+                page._netframe.reload_config()
 
     def echo(self, text):
         """Echo something to the global "echo box"."""
