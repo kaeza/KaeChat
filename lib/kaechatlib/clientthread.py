@@ -138,7 +138,7 @@ class ClientThread(threading.Thread):
                 cmd, args = args
             else:
                 cmd, args = args[0], ""
-            self.on_privmsg_ctcp(who, channel, cmd, args)
+            self._on_privmsg_ctcp(who, channel, cmd, args)
             return
         if text:
             self._frame.echo(text, who=who[0], channel=channel, prefix=prefix,
@@ -155,24 +155,32 @@ class ClientThread(threading.Thread):
 
     def _on_privmsg_ctcp(self, who, channel, cmd, args):
         self._frame.echo("Received CTCP %s from %s." % (cmd, who[0]))
+        reply = None
         fn = "_on_privmsg_ctcp_" + cmd.lower()
         if hasattr(self, fn):
             f = getattr(self, fn)
             reply = f(who, channel, args)
-            if reply:
-                self._frame.echo("Sent: %s" % reply)
-                self._client.notice(who[0], "\1%s\1" % reply)
+        elif (_kc.config.has_section("ctcp")
+          and (cmd.lower() in _kc.config.options("ctcp"))):
+            reply = _kc.config.get("ctcp", cmd)
+        if reply:
+            self._frame.echo("Sent: %s" % reply)
+            self._client.notice_ctcp(who[0], "%s %s" % (cmd.upper(), reply))
 
     def _on_privmsg_ctcp_version(self, who, channel, args):
-        return "VERSION %s" % _kl.FULL_VERSION_STR
+        return _kl.FULL_VERSION_STR
 
     def _on_privmsg_ctcp_time(self, who, channel, args):
-        return "TIME %s" % time.strftime("%c", time.localtime())
+        return time.strftime("%c", time.localtime())
 
     def _on_privmsg_ctcp_ping(self, who, channel, args):
-        return "PING %s" % args
+        return args
 
     def _on_notice(self, who, channel, text):
+        if text.startswith('\1') and (text[-1] == '\1'):
+            text = text[1:-1]
+            self._frame.echo("Received CTCP reply from %s: %s" % (who[0], text))
+            return
         hi = False
         l = _nick_re.findall(text)
         if l:
@@ -202,7 +210,7 @@ class ClientThread(threading.Thread):
                       channel=channel, event=_kl.QUIT_EV)
 
     def _on_quit(self, who, reason=None):
-        for name in self._frame.channel_frames:
+        for name in self._frame._channel_frames:
             f = self._frame._channel_frames[name]
             f.refresh_userlist()
 

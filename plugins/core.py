@@ -178,7 +178,7 @@ def _recv(frame, cmd, args, args_eol):
     if len(args) < 1:
         kaechatlib.usage(frame, cmd, "Missing parameter.")
         return
-    frame.client.on_received(args_eol[0])
+    frame.client.on_received(unicode(args_eol[0]))
 
 @kaechatlib.chat_command
 def _server(frame, cmd, args, args_eol):

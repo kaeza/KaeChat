@@ -546,11 +546,10 @@ class Client(object):
         """
         self.try_call("on_raw_recv", None, [ text ])
         args = text.split(" ")
-        who = (None, None, None)
-        if args[0][0] == ':':
+        who = (None, None, None, None)
+        if (len(args[0]) > 0) and (args[0][0] == ':'):
             who = parse_prefix(args[0])
-            args = args[1:]
-        cmd, args = args[0], args[1:]
+        cmd, args = args[1], args[2:]
         newargs = [ ]
         last = None
         for a in args:
