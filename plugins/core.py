@@ -34,13 +34,13 @@ def _join(frame, cmd, args, args_eol):
     Join channel CHANNEL.
     """
     if len(args) == 1:
-        frame.join_channel(args[0])
+        frame.client.join(args[0])
     else:
         kaechatlib.usage(frame, cmd, "Missing channel.")
 
 @kaechatlib.chat_command
 def _part(frame, cmd, args, args_eol):
-    """/part [CHANNEL [REASON]]
+    """/part [CHANNEL] [REASON]
 
     Part channel CHANNEL with reason REASON. If no parameters are specified,
     parts current channel.

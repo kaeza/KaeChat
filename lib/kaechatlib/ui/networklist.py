@@ -3,8 +3,8 @@ import Tix
 import tkMessageBox
 import tkSimpleDialog
 
-import kaechatlib.config as _kc
 import kaechatlib as _k
+import kaechatlib.config as _kc
 
 #=============================================================================
 
@@ -93,7 +93,7 @@ class NetworkEditWindow(tkSimpleDialog.Dialog):
             netid = self.netid
         else:
             netid = name.replace('.', '_').replace(' ', '_').lower()
-            if netid in kaechatlib.networks:
+            if netid in _k.networks:
                 r = tkMessageBox.askyesno("Warning", """\
 Network with ID `%s' already exists.
 Overwrite?""")

@@ -13,6 +13,7 @@ import kaechatlib as _kl
 import kaechatlib.config as _kc
 
 import kaeirc
+import kaeirc.util
 
 #=============================================================================
 
@@ -189,11 +190,15 @@ class ClientThread(threading.Thread):
                     hi = True
                     break
         event = _kl.HIGHLIGHT_EV if hi else _kl.NOTICE_EV
-        channel = _kl.NOTICES_CHANNEL if _kc.notices_to_chan else who[0]
+        if _kc.notices_to_chan:
+            channel = _kl.NOTICES_CHANNEL
+        elif kaeirc.nick_equals(channel, self.client.nickname):
+            channel = who[0]
         prefix = None if _kc.notices_to_chan else "[notice] "
         self._frame.echo(text, who=who[0], channel=channel, event=event,
           prefix=prefix)
-        _show_notification("NOTICE from %s:" % who[0], text)
+        if hi:
+            _show_notification("NOTICE from %s:" % who[0], text)
 
     def _on_topic(self, who, channel, newtopic):
         self._frame.echo("%s changed topic to: %s" % (who[0], newtopic),
@@ -228,8 +233,8 @@ class ClientThread(threading.Thread):
             text = "You are now known as %s" % nickname
         else:
             text = ("%s is now known as %s" % (who[0], nickname))
-        for name in self.frame.channel_frames:
-            if name[0] == '(': continue
+        for name in self.frame._channel_frames:
+            if not name[0] in kaeirc.CHANNEL_PREFIXES: continue
             ul = self._client.channels[name].nicknames
             if who[0] in ul:
                 f = self._frame._channel_frames[name]
@@ -240,51 +245,52 @@ class ClientThread(threading.Thread):
                 self._frame.echo(text, channel=name, event=_kl.NICK_CHANGE_EV)
 
     def _on_mode(self, who, channel, mode, arg1=None, arg2=None):
-        op = True
-        chan = self._client.channels[channel]
-        op = (mode[0] == '+')
-        c = mode[1]
-        text = None
-        if c == 'o':
-            nickname = arg1
-            if nickname is not None:
+        if channel[0] in kaeirc.CHANNEL_PREFIXES:
+            op = True
+            chan = self._client.channels[channel]
+            op = (mode[0] == '+')
+            c = mode[1]
+            text = None
+            if c == 'o':
+                nickname = arg1
+                if nickname is not None:
+                    if op:
+                        text = "%s gives channel operator status to %s"
+                    else:
+                        text = "%s removes channel operator status from %s"
+                    text = text % (who[0], nickname)
+                    self._frame.refresh_userlist(channel)
+            elif c == 'v':
+                nickname = arg1
+                if nickname is not None:
+                    if op:
+                        text = "%s gives voice status to %s"
+                    else:
+                        text = "%s removes voice status from %s"
+                    text = (text % (who[0], nickname))
+                    self._frame.refresh_userlist(channel)
+            elif c == 'q':
+                mask = arg1
                 if op:
-                    text = "%s gives channel operator status to %s"
+                    text = "%s sets quiet status on %s"
                 else:
-                    text = "%s removes channel operator status from %s"
-                text = text % (who[0], nickname)
-                self._frame.refresh_userlist(channel)
-        elif c == 'v':
-            nickname = arg1
-            if nickname is not None:
+                    text = "%s unsets quiet status on %s"
+                text = text % (who[0], mask)
+            elif c == 'b':
+                mask = arg1
                 if op:
-                    text = "%s gives voice status to %s"
+                    text = "%s sets ban on %s"
                 else:
-                    text = "%s removes voice status from %s"
-                text = (text % (who[0], nickname))
-                self._frame.refresh_userlist(channel)
-        elif c == 'q':
-            mask = arg1
-            if op:
-                text = "%s sets quiet status on %s"
-            else:
-                text = "%s unsets quiet status on %s"
-            text = text % (who[0], mask)
-        elif c == 'b':
-            mask = arg1
-            if op:
-                text = "%s sets ban on %s"
-            else:
-                text = "%s unsets ban on %s"
-            text = text % (who[0], mask)
-        if text is None:
-            nickname = arg1
-            if nickname is not None:
-                text = "%s gives mode %s to %s"
-            else:
-                text = "%s changes mode %s to %s"
-            text = text % (who[0], mode, channel)
-        self._frame.echo(text, channel=channel, event=_kl.MODE_CHANGE_EV)
+                    text = "%s unsets ban on %s"
+                text = text % (who[0], mask)
+            if text is None:
+                nickname = arg1
+                if nickname is not None:
+                    text = "%s gives mode %s to %s"
+                else:
+                    text = "%s changes mode %s to %s"
+                text = text % (who[0], mode, channel)
+            self._frame.echo(text, channel=channel, event=_kl.MODE_CHANGE_EV)
 
     def _on_rpl_welcome(self, who, nickname, message):
         self._frame._nicklabel.configure(text=nickname)

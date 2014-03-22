@@ -367,7 +367,7 @@ def random_nick():
 
     Used when all the selected nicks are unavailable.
     """
-    return "KaeChat%06d" % randint(0, 999999)
+    return "KaeChat%06d" % random.randint(0, 999999)
 
 #=============================================================================
 

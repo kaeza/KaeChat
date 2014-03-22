@@ -35,7 +35,7 @@ CHANNEL_PREFIXES = "#&+!"
 
 #=============================================================================
 
-_USER_RE = re.compile(r':([^!]+)!([^@]+)@(.+)')
+_USER_RE = re.compile(r'([^!]+)!([^@]+)@(.+)')
 
 #=============================================================================
 
@@ -71,7 +71,7 @@ def parse_prefix(user):
         nick, username, host = m.group(1, 2, 3)
         return (nick, username, host, user)
     else:
-        return (None, None, None, user)
+        return (user, None, None, user)
 
 #=============================================================================
 
@@ -548,7 +548,7 @@ class Client(object):
         args = text.split(" ")
         who = (None, None, None, None)
         if (len(args[0]) > 0) and (args[0][0] == ':'):
-            who = parse_prefix(args[0])
+            who = parse_prefix(args[0][1:])
             args = args[1:]
         cmd, args = args[0], args[1:]
         newargs = [ ]
@@ -630,19 +630,20 @@ class Client(object):
                 del self.channels[channel].nicknames[nickname]
 
     def _on_mode(self, who, channel, mode, arg1=None, arg2=None):
-        op = True
-        chan = self.channels[channel]
-        op = (mode[0] == '+')
-        c = mode[1]
-        if (c == 'o') or (c == 'v'):
-            nickname = arg1
-            if nickname is not None:
-                if not c in chan.nicknames[nickname].mode:
-                    if op:
-                        chan.nicknames[nickname].mode += c
-                    else:
-                        chan.nicknames[nickname].mode = \
-                          chan.nicknames[nickname].mode.replace(c, '')
+        if channel[0] in kaeirc.CHANNEL_PREFIXES:
+            op = True
+            chan = self.channels[channel]
+            op = (mode[0] == '+')
+            c = mode[1]
+            if (c == 'o') or (c == 'v'):
+                nickname = arg1
+                if nickname is not None:
+                    if not c in chan.nicknames[nickname].mode:
+                        if op:
+                            chan.nicknames[nickname].mode += c
+                        else:
+                            chan.nicknames[nickname].mode = \
+                              chan.nicknames[nickname].mode.replace(c, '')
 
     def _on_rpl_namreply(self, who, me, mode, channel, names):
         if channel in self.channels:

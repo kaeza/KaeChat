@@ -645,7 +645,7 @@ class MainFrame(Tix.Frame):
     def _net_disconnect(self, event=None):
         pagename = self._notebook.raised()
         if pagename[0] != '@':
-            f = self._notebook.page(pagename).netframe
+            f = self._notebook.page(pagename)._netframe
             if f.active:
                 f._thread._client.disconnect()
             self._notebook.delete(pagename)
